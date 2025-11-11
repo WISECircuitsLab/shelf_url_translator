@@ -21,23 +21,26 @@ output_pdf = "qr_codes.pdf"
 logo_file = "logo.png"  
 
 
-# ===== LABEL DIMENSIONS CONFIGURcd QR  ATION =====
-# Current: Avery 1" x 2-5/8" (25.4mm x 66.675mm) labels
+# ===== LABEL DIMENSIONS CONFIGURATION =====
+# Presta® Template 94200 - 1" x 2-5/8" labels, 30 labels per sheet
 # To change label size, modify these values:
 LABEL_WIDTH_MM = 66.675  # 2.625 inches - Width of each label
 LABEL_HEIGHT_MM = 25.4   # 1 inch - Height of each label
 
-# Page settings (standard 8.5" x 11" paper)
+# Page settings (8.5" x 11" paper - Presta Template 94200)
 PAGE_WIDTH_MM = 215.9   # 8.5 inches  
 PAGE_HEIGHT_MM = 279.4  # 11 inches
 
 # Spacing and sizing settings (relative to label size)
-LABEL_PADDING_PERCENT = 0.05  # 10% padding inside each label
+LABEL_PADDING_PERCENT = 0.05  # 5% padding inside each label
 QR_CODE_WIDTH_PERCENT = 0.70  # QR code takes 70% of available width
 LOGO_SIZE_PERCENT = 0.90      # Logo max size as % of available height
 
-# Margins around the entire page
-PAGE_MARGINS_MM = 5  # Margins on all sides of the page
+# Page margins (Presta Template 94200 specifications)
+PAGE_MARGIN_TOP_MM = 12.7     # 0.5" top margin
+PAGE_MARGIN_BOTTOM_MM = 12.7  # 0.5" bottom margin
+PAGE_MARGIN_LEFT_MM = 4.7625  # 0.1875" left margin
+PAGE_MARGIN_RIGHT_MM = 4.7625 # 0.1875" right margin
 
 def generate_pdf_from_qr_codes():
     """Generate a PDF with QR codes and logos formatted for Avery 1" x 2-5/8" labels."""
@@ -77,24 +80,24 @@ def generate_pdf_from_qr_codes():
     # Extract WISE IDs from filenames - no CSV needed
     print("Extracting WISE IDs from QR code filenames...")
     
-    # Calculate label specifications for a standard 8.5" x 11" sheet
-    # Determine how many labels can fit based on configured dimensions
-    cols = int(PAGE_WIDTH_MM // LABEL_WIDTH_MM)
-    rows = int(PAGE_HEIGHT_MM // LABEL_HEIGHT_MM)
+    # Presta Template 94200 specifications: 30 labels per sheet (3 columns × 10 rows)
+    cols = 3  # 3 columns as per Presta Template 94200
+    rows = 10 # 10 rows as per Presta Template 94200
     
-    print(f"Label configuration:")
+    print(f"Label configuration (Presta Template 94200):")
     print(f"  - Label size: {LABEL_WIDTH_MM:.1f}mm x {LABEL_HEIGHT_MM:.1f}mm")
     print(f"  - Page size: {PAGE_WIDTH_MM:.1f}mm x {PAGE_HEIGHT_MM:.1f}mm")
     print(f"  - Grid: {cols} columns x {rows} rows = {cols*rows} labels per page")
+    print(f"  - Margins: Top/Bottom {PAGE_MARGIN_TOP_MM:.1f}mm, Left/Right {PAGE_MARGIN_LEFT_MM:.3f}mm")
     
-    # Create label specifications with configurable margins
+    # Create label specifications with Presta Template 94200 margins
     specs = labels.Specification(
         PAGE_WIDTH_MM, PAGE_HEIGHT_MM, 
         cols, rows, 
         LABEL_WIDTH_MM, LABEL_HEIGHT_MM,
-        left_margin=PAGE_MARGINS_MM, right_margin=PAGE_MARGINS_MM,
-        top_margin=PAGE_MARGINS_MM, bottom_margin=PAGE_MARGINS_MM,
-        corner_radius=1
+        left_margin=PAGE_MARGIN_LEFT_MM, right_margin=PAGE_MARGIN_RIGHT_MM,
+        top_margin=PAGE_MARGIN_TOP_MM, bottom_margin=PAGE_MARGIN_BOTTOM_MM,
+        corner_radius=2  # Rounded corners as specified
     )
     
     # Create drawing function
