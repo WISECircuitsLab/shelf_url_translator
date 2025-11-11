@@ -13,12 +13,15 @@ from reportlab.lib.utils import ImageReader
 from PIL import Image
 import io
 
+##############################################################
 # Configuration - EASILY CUSTOMIZABLE LABEL SETTINGS
+##############################################################
 qr_dir = "qr_codes"
 output_pdf = "qr_codes.pdf"
-logo_file = "logo.JPG"  # Path to the logo image file (using JPG instead of jpeg)
+logo_file = "logo.png"  
 
-# ===== LABEL DIMENSIONS CONFIGURATION =====
+
+# ===== LABEL DIMENSIONS CONFIGURcd QR  ATION =====
 # Current: Avery 1" x 2-5/8" (25.4mm x 66.675mm) labels
 # To change label size, modify these values:
 LABEL_WIDTH_MM = 66.675  # 2.625 inches - Width of each label
@@ -29,9 +32,9 @@ PAGE_WIDTH_MM = 215.9   # 8.5 inches
 PAGE_HEIGHT_MM = 279.4  # 11 inches
 
 # Spacing and sizing settings (relative to label size)
-LABEL_PADDING_PERCENT = 0.10  # 10% padding inside each label
+LABEL_PADDING_PERCENT = 0.05  # 10% padding inside each label
 QR_CODE_WIDTH_PERCENT = 0.70  # QR code takes 70% of available width
-LOGO_SIZE_PERCENT = 0.80      # Logo max size as % of available height
+LOGO_SIZE_PERCENT = 0.90      # Logo max size as % of available height
 
 # Margins around the entire page
 PAGE_MARGINS_MM = 5  # Margins on all sides of the page
@@ -62,8 +65,6 @@ def generate_pdf_from_qr_codes():
         optimized_logo = "temp_logo_optimized.png"
         try:
             with Image.open(logo_file) as img:
-                # Resize logo to a reasonable size for PDF (max 200x200)
-                img.thumbnail((200, 200), Image.Resampling.LANCZOS)
                 # Convert to RGB if necessary
                 if img.mode != 'RGB':
                     img = img.convert('RGB')
@@ -123,16 +124,29 @@ def generate_pdf_from_qr_codes():
             # Add logo on the right side if available
             if logo_file_path and os.path.exists(logo_file_path):
                 try:
-                    # Calculate logo size using configuration
+                    # Get logo dimensions to preserve aspect ratio
+                    with Image.open(logo_file_path) as logo_img:
+                        logo_width, logo_height = logo_img.size
+                        logo_aspect_ratio = logo_width / logo_height
+                    
+                    # Calculate available space for logo
                     remaining_width = usable_width - qr_size - (padding * 0.5)
-                    logo_max_size = min(remaining_width, usable_height * LOGO_SIZE_PERCENT)
+                    max_logo_height = usable_height * LOGO_SIZE_PERCENT
                     
-                    # Position logo on the right side
+                    # Calculate logo size while preserving aspect ratio
+                    if logo_aspect_ratio >= 1:  # Logo is wider than it is tall
+                        logo_display_width = min(remaining_width, max_logo_height * logo_aspect_ratio)
+                        logo_display_height = logo_display_width / logo_aspect_ratio
+                    else:  # Logo is taller than it is wide
+                        logo_display_height = min(max_logo_height, remaining_width / logo_aspect_ratio)
+                        logo_display_width = logo_display_height * logo_aspect_ratio
+                    
+                    # Position logo on the right side, centered vertically
                     logo_x = padding + qr_size + (padding * 0.5)
-                    logo_y = padding + (usable_height - logo_max_size) / 2
+                    logo_y = padding + (usable_height - logo_display_height) / 2
                     
-                    # Use the logo file directly
-                    label.add(shapes.Image(logo_x, logo_y, logo_max_size, logo_max_size, logo_file_path))
+                    # Use the logo file with preserved aspect ratio
+                    label.add(shapes.Image(logo_x, logo_y, logo_display_width, logo_display_height, logo_file_path))
                         
                 except Exception as e:
                     print(f"Warning: Could not add logo - {e}")
